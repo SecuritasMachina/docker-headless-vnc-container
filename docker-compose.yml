@@ -19,3 +19,34 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+  ubuntu-xfce-dev-vnc:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu.xfce.dev.vnc
+    ports:
+      - "5902:5901"   # Direct VNC viewer
+      - "6902:6901"   # noVNC browser client → http://localhost:6902
+      - "8443:8443"   # code-server (VS Code) → http://localhost:8443
+    # Prevent browser crashes at high resolutions
+    shm_size: "256m"
+    environment:
+      - VNC_PW=vncpassword
+      - VNC_RESOLUTION=1440x900
+      - VNC_COL_DEPTH=24
+      - VNC_VIEW_ONLY=false
+      - CODE_SERVER_PORT=8443
+      - CODE_SERVER_AUTH=none
+    volumes:
+      - workspace:/workspace
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6901/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    profiles:
+      - dev
+
+volumes:
+  workspace:
