@@ -66,6 +66,29 @@ automated screenshots, CI pipelines needing a real desktop.
 
 ---
 
+## Iteration 2 — 2026-05-17
+
+### Brainstorm
+
+| # | Description | Dim | Source | Impact | Effort | Risk | Positive | Negative |
+|---|---|---|---|---|---|---|---|---|
+| 10 | **Add code-server dev variant** | functionality | User's DevEnv, domain note | High | M | Low | Aligns with user's existing DevEnv setup; remote development in browser | Adds ~300MB to image; new port (8443); build time longer |
+| 11 | Update Ubuntu IceWM Dockerfile to 22.04 parity | stability | Same as iter 1 | High | S | Low | IceWM image also builds | Same as Xfce changes; straightforward copy |
+| 12 | Clipboard support via x11-clipboard/autocutsel | functionality | Unsolved: clipboard sync | Medium | S | Medium | Copy/paste between host and VNC desktop | Requires extra daemon; not all VNC clients support; reliability varies |
+| 13 | noVNC landing page: auto-redirect to full client | UI | accetto does this | Low | S | Low | Users skip the choice page | Purely cosmetic |
+| 14 | Remove CentOS (EOL July 2024) or migrate to Rocky/Alma | stability | Direct observation | High | L | Low | Removes broken/EOL images | Large effort; out of scope for quick iteration |
+
+### Selection
+
+**Iteration 2: Item 10 (code-server dev variant) + Item 11 (IceWM parity)**
+- code-server traces directly to user's existing DevEnv — mirrors that architecture on Ubuntu
+- IceWM parity is S-effort and fixes the same broken build issues as iter 1
+- Negative tradeoffs accepted: image size increase is expected for a dev image; IceWM has no known tradeoffs
+- Item 12 (clipboard) deferred — reliability issues outweigh benefit at this time
+- Item 14 (CentOS) blocked — architectural scope too large
+
+---
+
 ## Changes Log
 
 *(filled in after each iteration)*

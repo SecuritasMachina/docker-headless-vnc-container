@@ -1,21 +1,26 @@
-# Headless VNC container based on Ubuntu 22.04 with IceWM desktop
+# Headless VNC developer container based on Ubuntu 22.04 with Xfce4 + code-server
+#
+# Adds code-server (VS Code in browser) on top of the base VNC image.
+# Access at http://localhost:8443  (or the configured CODE_SERVER_PORT)
 
 FROM ubuntu:22.04
 
 LABEL maintainer="Simon Hofmann <simon.hofmann@consol.de>" \
-      io.k8s.description="Headless VNC Container with IceWM window manager, firefox and chromium" \
-      io.k8s.display-name="Headless VNC Container based on Ubuntu" \
-      io.openshift.expose-services="6901:http,5901:xvnc" \
-      io.openshift.tags="vnc, ubuntu, icewm" \
+      io.k8s.description="Headless VNC Developer Container with Xfce4, code-server, firefox and chrome" \
+      io.k8s.display-name="Headless VNC Developer Container based on Ubuntu" \
+      io.openshift.expose-services="6901:http,5901:xvnc,8443:http" \
+      io.openshift.tags="vnc, ubuntu, xfce, code-server, development" \
       io.openshift.non-scalable=true
 
-## Connection ports for controlling the UI:
+## Connection ports:
 # VNC port:5901
-# noVNC webport, connect via http://IP:6901/?password=vncpassword
+# noVNC webport:6901  → http://IP:6901
+# code-server:8443    → http://IP:8443
 ENV DISPLAY=:1 \
     VNC_PORT=5901 \
-    NO_VNC_PORT=6901
-EXPOSE $VNC_PORT $NO_VNC_PORT
+    NO_VNC_PORT=6901 \
+    CODE_SERVER_PORT=8443
+EXPOSE $VNC_PORT $NO_VNC_PORT $CODE_SERVER_PORT
 
 ### Environment config
 ENV HOME=/headless \
@@ -27,7 +32,8 @@ ENV HOME=/headless \
     VNC_COL_DEPTH=24 \
     VNC_RESOLUTION=1280x1024 \
     VNC_PW=vncpassword \
-    VNC_VIEW_ONLY=false
+    VNC_VIEW_ONLY=false \
+    CODE_SERVER_AUTH=none
 WORKDIR $HOME
 
 ### Add all install scripts for further steps
@@ -50,17 +56,26 @@ RUN $INST_SCRIPTS/no_vnc.sh
 RUN $INST_SCRIPTS/firefox.sh
 RUN $INST_SCRIPTS/chrome.sh
 
-### Install IceWM UI
-RUN $INST_SCRIPTS/icewm_ui.sh
-ADD ./src/ubuntu/icewm/ $HOME/
+### Install Xfce UI
+RUN $INST_SCRIPTS/xfce_ui.sh
+ADD ./src/common/xfce/ $HOME/
+
+### Install developer tools
+RUN $INST_SCRIPTS/dev_tools.sh
+
+### Install code-server (VS Code in browser)
+RUN $INST_SCRIPTS/code_server.sh
 
 ### Configure startup
 RUN $INST_SCRIPTS/libnss_wrapper.sh
 ADD ./src/common/scripts $STARTUPDIR
 RUN $INST_SCRIPTS/set_user_permission.sh $STARTUPDIR $HOME
 
+### Create workspace directory
+RUN mkdir -p /workspace && chmod a+rwx /workspace
+
 ### Health check: verify noVNC HTTP port is responding
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
     CMD curl -f http://localhost:${NO_VNC_PORT}/ || exit 1
 
 USER 1000

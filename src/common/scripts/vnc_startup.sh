@@ -119,6 +119,20 @@ if [[ $DEBUG == true ]] || [[ $1 =~ -t|--tail-log ]]; then
     tail -f $STARTUPDIR/*.log $HOME/.vnc/*$DISPLAY.log
 fi
 
+## start code-server if installed and CODE_SERVER_PORT is configured
+if command -v code-server &>/dev/null && [[ -n "${CODE_SERVER_PORT:-}" ]]; then
+    echo -e "\n------------------ start code-server ------------------------"
+    if [[ $DEBUG == true ]]; then
+        echo "code-server --bind-addr 0.0.0.0:${CODE_SERVER_PORT} --auth ${CODE_SERVER_AUTH:-none} /workspace"
+    fi
+    code-server \
+        --bind-addr "0.0.0.0:${CODE_SERVER_PORT}" \
+        --auth "${CODE_SERVER_AUTH:-none}" \
+        /workspace &>> $STARTUPDIR/code_server_startup.log &
+    PID_CODE=$!
+    echo -e "\ncode-server started:\n\t=> connect via http://$VNC_IP:$CODE_SERVER_PORT\n"
+fi
+
 if [ -z "$1" ] || [[ $1 =~ -w|--wait ]]; then
     wait $PID_SUB
 else
