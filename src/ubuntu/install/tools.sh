@@ -13,7 +13,10 @@ apt-get install -y --no-install-recommends \
     gettext \
     ca-certificates \
     gnupg \
-    lsb-release
+    lsb-release \
+    xdotool \
+    xdpyinfo \
+    autocutsel
 apt-get clean -y
 rm -rf /var/lib/apt/lists/*
 

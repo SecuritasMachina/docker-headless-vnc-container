@@ -89,6 +89,37 @@ automated screenshots, CI pipelines needing a real desktop.
 
 ---
 
+## Iteration 3 — 2026-05-17 (domain refresh + fresh brainstorm)
+
+### Domain Notes Refresh
+
+User's DevEnv uses `x11vnc` which has built-in clipboard sync. The headless VNC container
+uses TigerVNC, which requires `vncconfig -nowin` running in the X session for clipboard sync.
+Primary use cases remain: UI testing (Selenium, Playwright), remote dev, CI pipelines.
+
+### Brainstorm
+
+| # | Description | Dim | Source | Impact | Effort | Risk | Positive | Negative |
+|---|---|---|---|---|---|---|---|---|
+| 15 | **Clipboard support: vncconfig + autocutsel in xstartup** | functionality | Unsolved #1, GitHub issue #21 | High | S | Low | Copy/paste between browser and VNC desktop finally works | None; vncconfig is part of tigervnc-common already installed |
+| 16 | **Add xdotool + xdpyinfo to base image** | functionality | Domain note: UI testing use case | Medium | S | Low | Standard UI automation tools available in-image | ~5MB |
+| 17 | Startup robustness: log failures visibly instead of silent exit | stability | Direct observation | Medium | S | Low | Easier debugging when startup fails | Slightly longer startup output |
+| 18 | BUILD_DATE label in Dockerfiles | stability | Best practice | Low | S | Low | Traceability of when image was built | Breaks layer cache on every build |
+| 19 | CentOS images: mark EOL or migrate to Rocky/Alma | stability | CentOS 7 EOL July 2024 | High | L | Low | Removes security risk | Large effort; L scope |
+| 20 | noVNC full-client redirect by default | UI | accetto pattern | Low | S | Low | Users get better client without choosing | Minor behavior change |
+
+### Selection
+
+**Iteration 3: Items 15+16+17** — clipboard + xdotool + startup robustness.
+- Item 15 fixes the #1 most complained-about issue (clipboard sync) with zero risk
+- Item 16 adds standard tools for this container's primary use case (UI testing)
+- Item 17 makes production debugging much easier with no negative tradeoffs
+- Item 18 deferred (breaks caching; low value)
+- Item 19 blocked (out of scope for quick iteration)
+- Item 20 deferred (low impact)
+
+---
+
 ## Changes Log
 
 *(filled in after each iteration)*
