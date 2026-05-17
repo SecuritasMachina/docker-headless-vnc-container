@@ -1,62 +1,91 @@
-#### POD config (run one time)
-apiVersion: apps/v1beta1
+## Example Kubernetes Deployment for headless VNC container (Ubuntu 22.04 based)
+## Updated for modern Kubernetes API versions
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: headless-vnc
   labels:
-    application: headless-vnc
+    app: headless-vnc
 spec:
-  # 1 Pods should exist at all times.
   replicas: 1
+  selector:
+    matchLabels:
+      app: headless-vnc
   template:
     metadata:
       labels:
-        application: headless-vnc
+        app: headless-vnc
     spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: headless-vnc
-        image: consol/centos-xfce-vnc
+        image: consol/ubuntu-xfce-vnc:latest
         imagePullPolicy: Always
-        args:
-          ### make normal UI startup to connect via: oc rsh <pod-name> bash
-          #- '--tail-log'
-        ### checks that vnc server is up and running
+        env:
+        - name: VNC_PW
+          value: "changeme"           # Override with a Secret in production
+        - name: VNC_RESOLUTION
+          value: "1280x1024"
+        - name: VNC_COL_DEPTH
+          value: "24"
+        ports:
+        - containerPort: 6901
+          name: novnc-http
+        - containerPort: 5901
+          name: vnc
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        ## Shared memory: prevents Chrome/browser crashes at normal resolutions
+        ## Increase to 512m for 1920x1080 or heavy browser workloads
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: dshm
         livenessProbe:
           tcpSocket:
             port: 5901
-          initialDelaySeconds: 1
-          timeoutSeconds: 1
-        ### checks if http-vnc connection is working
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /
             port: 6901
             scheme: HTTP
-          initialDelaySeconds: 1
-          timeoutSeconds: 1
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 256Mi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    application: headless-vnc
   name: headless-vnc
+  labels:
+    app: headless-vnc
 spec:
-  externalName: headless-vnc
   ports:
-  - name: http-port-tcp
+  - name: novnc-http
     protocol: TCP
     port: 6901
     targetPort: 6901
     nodePort: 32001
-  - name: vnc-port-tcp
+  - name: vnc
     protocol: TCP
     port: 5901
     targetPort: 5901
     nodePort: 32002
   selector:
-    application: headless-vnc
+    app: headless-vnc
   type: NodePort
-# Use type loadbalancer if needed
-#  type: LoadBalancer
+  # For cloud deployments, switch to LoadBalancer:
+  # type: LoadBalancer
