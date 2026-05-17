@@ -2,10 +2,20 @@
 ### every exit != 0 fails the script
 set -e
 
-echo "Install some common tools for further installation"
-apt-get update 
-apt-get install -y vim wget net-tools locales bzip2
+echo "Install common tools"
+apt-get update
+apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    net-tools \
+    locales \
+    vim \
+    gettext \
+    ca-certificates \
+    gnupg \
+    lsb-release
 apt-get clean -y
+rm -rf /var/lib/apt/lists/*
 
-echo "generate locales für en_US.UTF-8"
+echo "Generate locale en_US.UTF-8"
 locale-gen en_US.UTF-8

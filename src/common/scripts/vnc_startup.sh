@@ -81,13 +81,15 @@ fi
 echo "$VNC_PW" | vncpasswd -f >> $PASSWD_PATH
 chmod 600 $PASSWD_PATH
 
+## Create xstartup for the window manager (required by TigerVNC 1.12+)
+cat > "$HOME/.vnc/xstartup" << 'XSTARTUP_EOF'
+#!/bin/bash
+exec $HOME/wm_startup.sh
+XSTARTUP_EOF
+chmod +x "$HOME/.vnc/xstartup"
 
 ## start vncserver and noVNC webclient
 echo -e "\n------------------ start noVNC  ----------------------------"
-if [[ $DEBUG == true ]]; then echo "$NO_VNC_HOME/utils/launch.sh --vnc localhost:$VNC_PORT --listen $NO_VNC_PORT"; fi
-$NO_VNC_HOME/utils/launch.sh --vnc localhost:$VNC_PORT --listen $NO_VNC_PORT &> $STARTUPDIR/no_vnc_startup.log &
-PID_SUB=$!
-
 echo -e "\n------------------ start VNC server ------------------------"
 echo "remove old vnc locks to be a reattachable container"
 vncserver -kill $DISPLAY &> $STARTUPDIR/vnc_startup.log \
@@ -95,10 +97,15 @@ vncserver -kill $DISPLAY &> $STARTUPDIR/vnc_startup.log \
     || echo "no locks present"
 
 echo -e "start vncserver with param: VNC_COL_DEPTH=$VNC_COL_DEPTH, VNC_RESOLUTION=$VNC_RESOLUTION\n..."
-if [[ $DEBUG == true ]]; then echo "vncserver $DISPLAY -depth $VNC_COL_DEPTH -geometry $VNC_RESOLUTION"; fi
-vncserver $DISPLAY -depth $VNC_COL_DEPTH -geometry $VNC_RESOLUTION &> $STARTUPDIR/no_vnc_startup.log
-echo -e "start window manager\n..."
-$HOME/wm_startup.sh &> $STARTUPDIR/wm_startup.log
+if [[ $DEBUG == true ]]; then echo "vncserver $DISPLAY -depth $VNC_COL_DEPTH -geometry $VNC_RESOLUTION -localhost no"; fi
+vncserver $DISPLAY -depth $VNC_COL_DEPTH -geometry $VNC_RESOLUTION -localhost no \
+    &> $STARTUPDIR/vnc_startup.log
+
+## start noVNC using websockify (works with both downloaded and apt-installed noVNC)
+if [[ $DEBUG == true ]]; then echo "websockify --web $NO_VNC_HOME $NO_VNC_PORT localhost:$VNC_PORT"; fi
+websockify --web "$NO_VNC_HOME" "$NO_VNC_PORT" "localhost:$VNC_PORT" \
+    &> $STARTUPDIR/no_vnc_startup.log &
+PID_SUB=$!
 
 ## log connect options
 echo -e "\n\n------------------ VNC environment started ------------------"

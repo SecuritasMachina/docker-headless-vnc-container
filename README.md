@@ -5,11 +5,13 @@ This repository contains a collection of Docker images with headless VNC environ
 Each Docker image is installed with the following components:
 
 * Desktop environment [**Xfce4**](http://www.xfce.org) or [**IceWM**](http://www.icewm.org/)
-* VNC-Server (default VNC port `5901`)
+* VNC-Server using [**TigerVNC**](https://tigervnc.org/) (default VNC port `5901`)
 * [**noVNC**](https://github.com/novnc/noVNC) - HTML5 VNC client (default http port `6901`)
 * Browsers:
-  * Mozilla Firefox
-  * Chromium
+  * Mozilla Firefox (current release via Mozilla PPA)
+  * Google Chrome (stable)
+
+> **Base images:** Ubuntu 22.04 LTS (`ubuntu-*` images)
   
 ![Docker VNC Desktop access via HTML page](.pics/vnc_container_view.png)
 
@@ -40,16 +42,24 @@ It's also possible to run the images in container orchestration platforms like [
 * [Kubernetes usage of "headless" VNC Docker images](./kubernetes/README.md)
 * [OpenShift usage of "headless" VNC Docker images](./openshift/README.md) 
 
+## Quick Start (Docker Compose)
+
+```bash
+docker compose up --build
+# Open http://localhost:6901 in your browser
+```
+
 ## Usage
-Usage is **similar** for all provided images, e.g. for `consol/centos-xfce-vnc`:
+Usage is **similar** for all provided images, e.g. for `consol/ubuntu-xfce-vnc`:
 
 - Print out help page:
 
-      docker run consol/centos-xfce-vnc --help
+      docker run consol/ubuntu-xfce-vnc --help
 
 - Run command with mapping to local port `5901` (vnc protocol) and `6901` (vnc web access):
 
-      docker run -d -p 5901:5901 -p 6901:6901 consol/centos-xfce-vnc
+      # --shm-size=256m prevents browser crashes at normal resolutions
+      docker run -d --shm-size=256m -p 5901:5901 -p 6901:6901 consol/ubuntu-xfce-vnc
   
 - Change the default user and group within a container to your own with adding `--user $(id -u):$(id -g)`:
 
@@ -131,12 +141,12 @@ Since version `1.2.0` it's possible to prevent unwanted control via VNC. Therefo
 
 ### 5) Known Issues
 
-#### 5.1) Chromium crashes with high VNC_RESOLUTION ([#53](https://github.com/ConSol/docker-headless-vnc-container/issues/53))
-If you open some graphic/work intensive websites in the Docker container (especially with high resolutions e.g. `1920x1080`) it can happen that Chromium crashes without any specific reason. The problem there is the too small `/dev/shm` size in the container. Currently there is no other way, as define this size on startup via `--shm-size` option, see [#53 - Solution](https://github.com/ConSol/docker-headless-vnc-container/issues/53#issuecomment-347265977):
+#### 5.1) Browser crashes with high VNC_RESOLUTION ([#53](https://github.com/ConSol/docker-headless-vnc-container/issues/53))
+If you open graphics-intensive websites in the container (especially at high resolutions like `1920x1080`) the browser may crash. The cause is the tiny default `/dev/shm` size in Docker containers. **Always pass `--shm-size=256m`** (or larger for heavy use):
 
-    docker run --shm-size=256m -it -p 6901:6901 -e VNC_RESOLUTION=1920x1080 consol/centos-xfce-vnc chromium-browser http://map.norsecorp.com/
-  
-Thx @raghavkarol for the hint! 
+    docker run --shm-size=256m -it -p 6901:6901 -e VNC_RESOLUTION=1920x1080 consol/ubuntu-xfce-vnc
+
+The provided `docker-compose.yml` already sets `shm_size: "256m"`. 
 
 ## How to release
 See **[how-to-release.md](./how-to-release.md)**
