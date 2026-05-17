@@ -158,3 +158,20 @@ Primary use cases remain: UI testing (Selenium, Playwright), remote dev, CI pipe
 ### Iteration 4
 - CentOS deprecation notices; resolution script; password warning; x11-utils
 - Measured: N/A (documentation + safety changes)
+
+### Iteration 5
+- Traefik labels in docker-compose.yml; Kubernetes manifest updated to apps/v1
+- Measured: K8s manifest now works on modern clusters (apps/v1beta1 removed in k8s 1.16)
+
+### Iteration 6
+- README rewritten; desktop shortcuts fixed (chromium→google-chrome, icon paths)
+- Measured: Desktop Chrome shortcut now works; README reflects actual image state
+
+### Iteration 7
+- Chrome: google-chrome-docker wrapper + ~/.chrome-flags; autocutsel in Xfce startup; .env.example
+- Measured: Chrome window-size matches VNC_RESOLUTION from first launch; clipboard more reliable
+
+### Iteration 8
+- Fix: google-chrome-docker wrapper was not executable (no .sh suffix skipped by set_user_permission.sh)
+- Startup: resolution validation, auto-connect noVNC URL in ready banner
+- Measured: Desktop shortcut no longer fails with Permission denied
