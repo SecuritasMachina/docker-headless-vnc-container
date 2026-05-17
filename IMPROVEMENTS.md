@@ -120,6 +120,41 @@ Primary use cases remain: UI testing (Selenium, Playwright), remote dev, CI pipe
 
 ---
 
+## Iteration 4 — 2026-05-17
+
+### Brainstorm
+
+| # | Description | Dim | Source | Impact | Effort | Risk | Positive | Negative |
+|---|---|---|---|---|---|---|---|---|
+| 21 | **CentOS Dockerfiles: deprecation notices** | stability | CentOS 7 EOL June 2024 | High | S | Low | Users don't accidentally build broken EOL images | Just comments; images still in repo |
+| 22 | **Dynamic resolution change script** | functionality | Unsolved: resolution env ignored | Medium | S | Low | Change resolution without restarting container | xrandr quirks vary by VNC output name |
+| 23 | Default password warning in startup | security | Best practice | Medium | S | Low | Users notice insecure default | None |
+| 24 | Add x11-utils (cvt) + x11-xserver-utils to base | stability | Required by resolution script | Low | S | Low | Resolution script works | ~1MB |
+
+### Selection
+
+**Iteration 4: Items 21+22+23+24** — all small effort, all address real pain points.
+- CentOS deprecation prevents users from accidentally trying to build broken EOL images
+- Resolution script directly addresses Unsolved Problem: "VNC resolution env ignored by VNC client"
+- Default password warning is a no-brainer security improvement
+
+---
+
 ## Changes Log
 
-*(filled in after each iteration)*
+### Iteration 1
+- Upgraded Ubuntu 16.04 → 22.04; fixed broken TigerVNC/noVNC/Firefox installs
+- Measured: image now builds (previously completely broken due to bintray.com 404)
+
+### Iteration 2
+- Added code-server dev variant; IceWM Ubuntu 22.04 parity
+- Measured: two additional working images; code-server accessible at port 8443
+
+### Iteration 3
+- Clipboard: vncconfig in xstartup; autocutsel + xdotool installed
+- Startup: colored error output, failure detection, structured ready-summary
+- Measured: clipboard sync now works via VNC protocol; errors visible in container logs
+
+### Iteration 4
+- CentOS deprecation notices; resolution script; password warning; x11-utils
+- Measured: N/A (documentation + safety changes)

@@ -77,6 +77,10 @@ fi
 echo "$VNC_PW" | vncpasswd -f >> $PASSWD_PATH
 chmod 600 $PASSWD_PATH
 
+if [[ "$VNC_PW" == "vncpassword" ]]; then
+    echo -e "\e[1;33m[WARN] Using default VNC password 'vncpassword' — set VNC_PW env var to change it\e[0m"
+fi
+
 ## Create xstartup for the window manager (required by TigerVNC 1.12+)
 ## vncconfig -nowin enables clipboard sync between VNC client and X session
 cat > "$HOME/.vnc/xstartup" << 'XSTARTUP_EOF'
