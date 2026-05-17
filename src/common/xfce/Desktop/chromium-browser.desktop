@@ -3,7 +3,7 @@ Version=1.0
 Name=Google Chrome
 GenericName=Web Browser
 Comment=Access the Internet
-Exec=google-chrome --no-sandbox --disable-gpu %U
+Exec=/dockerstartup/google-chrome-docker %U
 Terminal=false
 Type=Application
 Icon=google-chrome
@@ -14,8 +14,8 @@ StartupNotify=true
 
 [Desktop Action NewWindow]
 Name=Open a New Window
-Exec=google-chrome --no-sandbox --disable-gpu
+Exec=/dockerstartup/google-chrome-docker
 
 [Desktop Action Incognito]
 Name=Open a New Incognito Window
-Exec=google-chrome --no-sandbox --disable-gpu --incognito
+Exec=/dockerstartup/google-chrome-docker --incognito

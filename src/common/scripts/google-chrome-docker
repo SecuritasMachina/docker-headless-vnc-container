@@ -1,0 +1,16 @@
+#!/bin/bash
+# Wrapper for Google Chrome in Docker — reads flags from ~/.chrome-flags
+# and ensures container-required flags are always present.
+
+FLAGS_FILE="$HOME/.chrome-flags"
+EXTRA_FLAGS=""
+
+if [[ -r "$FLAGS_FILE" ]]; then
+    EXTRA_FLAGS=$(grep -v '^\s*#' "$FLAGS_FILE" | tr '\n' ' ')
+fi
+
+exec /usr/bin/google-chrome \
+    --no-sandbox \
+    --disable-gpu \
+    $EXTRA_FLAGS \
+    "$@"
