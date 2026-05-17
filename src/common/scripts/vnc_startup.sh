@@ -54,6 +54,12 @@ cleanup () {
 }
 trap cleanup SIGINT SIGTERM
 
+## validate VNC_RESOLUTION format
+if ! echo "${VNC_RESOLUTION:-}" | grep -qE '^[0-9]+x[0-9]+$'; then
+    echo -e "\e[1;31m[ERROR] VNC_RESOLUTION='${VNC_RESOLUTION:-}' is invalid. Expected format: WxH (e.g. 1280x1024)\e[0m"
+    exit 1
+fi
+
 ## write correct window size to chrome properties
 $STARTUPDIR/chrome-init.sh
 
@@ -141,11 +147,13 @@ fi
 
 ## log connect info
 echo -e "\n\n========== VNC environment ready =========="
-echo -e "  VNC viewer:  $VNC_IP:$VNC_PORT"
-echo -e "  noVNC web:   http://$VNC_IP:$NO_VNC_PORT"
+echo -e "  VNC viewer:       $VNC_IP:$VNC_PORT"
+echo -e "  noVNC (full):     http://$VNC_IP:$NO_VNC_PORT/vnc.html?autoconnect=true"
+echo -e "  noVNC (lite):     http://$VNC_IP:$NO_VNC_PORT/vnc_lite.html?password=..."
 if [[ -n "${CODE_SERVER_PORT:-}" ]]; then
-    echo -e "  code-server: http://$VNC_IP:$CODE_SERVER_PORT"
+    echo -e "  code-server:      http://$VNC_IP:$CODE_SERVER_PORT"
 fi
+echo -e "  password:         set via VNC_PW env var (current: ${#VNC_PW} chars)"
 echo -e "==========================================="
 
 if [[ $DEBUG == true ]] || [[ ${1:-} =~ -t|--tail-log ]]; then
