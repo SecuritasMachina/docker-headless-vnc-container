@@ -1,15 +1,27 @@
+## Headless VNC Containers — Docker Compose
+##
+## Quick start:
+##   docker compose up --build                     # base Xfce image
+##   docker compose --profile dev up --build       # base + dev (code-server)
+##
+## Access:
+##   http://localhost:6901    — noVNC browser desktop
+##   http://localhost:8443    — code-server (dev profile only)
+##   localhost:5901           — direct VNC viewer (optional)
+
 services:
   ubuntu-xfce-vnc:
     build:
       context: .
       dockerfile: Dockerfile.ubuntu.xfce.vnc
+    restart: unless-stopped
     ports:
-      - "5901:5901"   # Direct VNC viewer
-      - "6901:6901"   # noVNC browser client → http://localhost:6901
-    # Prevent Chrome/browser crashes at high resolutions
+      - "6901:6901"           # noVNC browser client → http://localhost:6901
+      - "5901:5901"           # Direct VNC viewer (optional; comment out for tighter security)
+    ## Shared memory: prevents Chrome/browser crashes. 512m for 1080p+.
     shm_size: "256m"
     environment:
-      - VNC_PW=vncpassword
+      - VNC_PW=vncpassword    # Change this!
       - VNC_RESOLUTION=1280x1024
       - VNC_COL_DEPTH=24
       - VNC_VIEW_ONLY=false
@@ -19,19 +31,27 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    ## Traefik labels — enable by setting TRAEFIK_ENABLE=true and
+    ## TRAEFIK_HOST to your hostname (e.g. vnc.example.com)
+    labels:
+      - "traefik.enable=${TRAEFIK_ENABLE:-false}"
+      - "traefik.http.routers.vnc-desktop.rule=Host(`${TRAEFIK_HOST:-vnc.localhost}`)"
+      - "traefik.http.routers.vnc-desktop.entrypoints=web"
+      - "traefik.http.services.vnc-desktop.loadbalancer.server.port=6901"
 
   ubuntu-xfce-dev-vnc:
     build:
       context: .
       dockerfile: Dockerfile.ubuntu.xfce.dev.vnc
+    restart: unless-stopped
     ports:
-      - "5902:5901"   # Direct VNC viewer
-      - "6902:6901"   # noVNC browser client → http://localhost:6902
-      - "8443:8443"   # code-server (VS Code) → http://localhost:8443
-    # Prevent browser crashes at high resolutions
+      - "6902:6901"           # noVNC browser client → http://localhost:6902
+      - "8443:8443"           # code-server (VS Code) → http://localhost:8443
+      - "5902:5901"           # Direct VNC viewer (optional)
+    ## Shared memory: prevents browser crashes at normal resolutions
     shm_size: "256m"
     environment:
-      - VNC_PW=vncpassword
+      - VNC_PW=vncpassword    # Change this!
       - VNC_RESOLUTION=1440x900
       - VNC_COL_DEPTH=24
       - VNC_VIEW_ONLY=false
@@ -47,6 +67,11 @@ services:
       start_period: 30s
     profiles:
       - dev
+    labels:
+      - "traefik.enable=${TRAEFIK_ENABLE:-false}"
+      - "traefik.http.routers.vnc-dev.rule=Host(`${TRAEFIK_HOST_DEV:-vnc-dev.localhost}`)"
+      - "traefik.http.routers.vnc-dev.entrypoints=web"
+      - "traefik.http.services.vnc-dev.loadbalancer.server.port=6901"
 
 volumes:
   workspace:
