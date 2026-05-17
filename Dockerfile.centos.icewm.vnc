@@ -1,9 +1,12 @@
-# This Dockerfile is used to build an headles vnc image based on Centos
+# ⚠ DEPRECATED: CentOS 7 reached End-of-Life on June 30, 2024.
+#   The yum repositories have been removed; this image will FAIL to build.
+#   Migrate to the Ubuntu-based images: Dockerfile.ubuntu.icewm.vnc
+#   or Dockerfile.ubuntu.xfce.dev.vnc (includes code-server).
 
 FROM centos:7
 
-MAINTAINER Simon Hofmann "simon.hofmann@consol.de"
-ENV REFRESHED_AT 2018-10-29
+LABEL maintainer="Simon Hofmann <simon.hofmann@consol.de>" \
+      status="DEPRECATED — CentOS 7 EOL June 2024; use Ubuntu images instead"
 
 LABEL io.k8s.description="Headless VNC Container with IceWM window manager, firefox and chromium" \
       io.k8s.display-name="Headless VNC Container based on Centos" \

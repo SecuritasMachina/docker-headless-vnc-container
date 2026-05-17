@@ -16,7 +16,9 @@ apt-get install -y --no-install-recommends \
     lsb-release \
     xdotool \
     xdpyinfo \
-    autocutsel
+    autocutsel \
+    x11-xserver-utils \
+    x11-utils
 apt-get clean -y
 rm -rf /var/lib/apt/lists/*
 
